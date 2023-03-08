@@ -1,0 +1,14 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/BombGameScene.unity
+    guid: efb1766f2bb8746c98712fe6565f74f3
+  - enabled: 1
+    path: Assets/Scenes/BombFailScene.unity
+    guid: 89fde0101889944378b7915ef7f4abc2
+  m_configObjects: {}
