@@ -6,27 +6,39 @@ using System.IO.Ports;
 public class ArduinoReader : MonoBehaviour
 {
 
-    SerialPort port = new SerialPort("/dev/cu.usbmodem1301", 9600);
+    SerialPort stream;
 
-
-    // Start is called before the first frame update
-    void Start()
+     void Start()
     {
-        port.Open();
+        stream = new SerialPort("/dev/cu.usbmodem14301");
+        stream.ReadTimeout = 50;
+        stream.Open();
     }
 
-    // Update is called once per frame
-    void Update()
+     void Update()
     {
-        if(port.IsOpen)
+        
+        if(stream.IsOpen)
         {
-            string data = port.ReadLine();// read a line of data from the serial port
-            Debug.Log(data);// output the data to the Unity console
-        }
+            try
+            {
+                string passcode = stream.ReadLine();
+                Debug.Log(passcode);
+            }
+
+            catch (System.Exception)
+            {
+                //Ignore timeouts and other exceptions
+            }
+        }    
     }
 
-    private void OnApplicationQuit()
+    private void OnDestroy()
     {
-        port.Close(); // close the serial port when the application is quit.
+        if(stream != null)
+        {
+            stream.Close();
+        }
+       
     }
 }
