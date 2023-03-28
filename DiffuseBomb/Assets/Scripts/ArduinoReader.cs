@@ -8,6 +8,11 @@ public class ArduinoReader : MonoBehaviour
 
     SerialPort stream;
 
+    public PuzzleManager puzzleManager;
+   
+
+    public string passcode; //Delcare passcode variable
+
      void Start()
     {
         stream = new SerialPort("/dev/cu.usbmodem14301");
@@ -24,13 +29,20 @@ public class ArduinoReader : MonoBehaviour
             {
                 string passcode = stream.ReadLine();
                 Debug.Log(passcode);
+
+                if (passcode == "1234")
+                {
+                    puzzleManager.OnPuzzleSolved();
+                }
             }
 
             catch (System.Exception)
             {
                 //Ignore timeouts and other exceptions
             }
-        }    
+        }
+
+        
     }
 
     private void OnDestroy()
@@ -41,4 +53,7 @@ public class ArduinoReader : MonoBehaviour
         }
        
     }
+
+   
+    
 }

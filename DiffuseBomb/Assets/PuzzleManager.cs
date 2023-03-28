@@ -7,11 +7,14 @@ public class PuzzleManager : MonoBehaviour
     public GameObject[] puzzlePieces; //Array of puzzle pieces
     public Transform[] puzzleSlots; //Array of puzzle slots where the pieces can be placed
 
+    //public PuzzleScript puzzleScript;
 
     private bool[] puzzleComplete; //Array of booleans to check if each puzzle piece is in its correct slot
 
 
-     void Start()
+    public GameObject gameToReveal;
+
+    void Start()
     {
         puzzleComplete = new bool[puzzlePieces.Length];
     }
@@ -56,4 +59,13 @@ public class PuzzleManager : MonoBehaviour
             }
         }
     }
+    public void OnPuzzleSolved()
+    {
+        gameToReveal.SetActive(true);
+    }
+
+    /* public void OnPuzzleSolved()
+     {
+         puzzleScript.OnPuzzleSolved();
+    }*/
 }
