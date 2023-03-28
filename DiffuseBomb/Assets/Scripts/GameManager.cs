@@ -5,6 +5,7 @@ using System;
 using DG.Tweening;
 using System.Linq;
 using Random = UnityEngine.Random;
+using System.Security.Cryptography;
 
 
 public class GameManager : MonoBehaviour
@@ -17,9 +18,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<BlockType> _types;
     [SerializeField] private float _travelTime = 0.2f;
     [SerializeField] private int _winCondition = 2048;
+    [SerializeField] private GameObject _mergeEffectPrefab;
+    [SerializeField] private FloatingText _floatingTextPrefab;
 
 
     [SerializeField] private GameObject _winScreen, _loseScreen;
+    [SerializeField] private AudioClip[] _moveClips;
+    [SerializeField] private AudioClip[] _matchClips;
+    [SerializeField] private AudioSource _source;
 
     private List<Node> _nodes;
     private List<Block> _blocks;
@@ -171,18 +177,27 @@ public class GameManager : MonoBehaviour
 
         sequence.OnComplete(() =>
         {
+            var mergeBlocks = orderedBlocks.Where(b => b.MergingBlock != null).ToList();
             foreach (var block in orderedBlocks.Where(b => b.MergingBlock != null))
             {
                 MergeBlocks(block.MergingBlock,block);
             }
-
+            if (mergeBlocks.Any()) _source.PlayOneShot(_matchClips[Random.Range(0, _matchClips.Length)], 0.2f);
             ChangeState(GameState.SpawningBlocks);
 
         });
+
+        _source.PlayOneShot(_moveClips[Random.Range(0, _moveClips.Length)], 0.2f);
     }
 
     void MergeBlocks(Block baseBlock, Block mergingBlock)
     {
+        var newValue = baseBlock.Value * 2;
+
+        Instantiate(_mergeEffectPrefab, baseBlock.Pos, Quaternion.identity);
+        Instantiate(_floatingTextPrefab, baseBlock.Pos, Quaternion.identity).Init(newValue);
+
+
         SpawnBlock(baseBlock.Node, baseBlock.Value * 2);
 
         RemoveBlock(baseBlock);
