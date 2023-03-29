@@ -5,7 +5,7 @@ using System;
 using DG.Tweening;
 using System.Linq;
 using Random = UnityEngine.Random;
-using System.Security.Cryptography;
+
 
 
 public class GameManager : MonoBehaviour
@@ -67,7 +67,9 @@ public class GameManager : MonoBehaviour
 
     }
 
-     void Update()
+  
+
+    void Update()
     {
         if (_state != GameState.WaitingInput) return;
 
@@ -128,7 +130,8 @@ public class GameManager : MonoBehaviour
         _blocks.Add(block);
     }
 
-    void Shift(Vector2 dir)
+
+    public void Shift(Vector2 dir)
     {
         ChangeState(GameState.Moving);
 
