@@ -5,6 +5,7 @@ using System;
 using DG.Tweening;
 using System.Linq;
 using Random = UnityEngine.Random;
+using System.IO.Ports;
 
 
 
@@ -31,12 +32,15 @@ public class GameManager : MonoBehaviour
     private List<Block> _blocks;
     private GameState _state;
     private int _round;
-
     private BlockType GetBlockTypeByValue(int value) => _types.First(t => t.Value == value);
+    public SerialPort sp = new SerialPort("/dev/cu.usbmodem14201", 9600);
+    public int CMD;
 
     void Start()
     {
         ChangeState(GameState.GenerateLevel);
+        sp.Open();
+        sp.ReadTimeout = 1;
     }
 
     private void ChangeState(GameState newState)
@@ -49,7 +53,7 @@ public class GameManager : MonoBehaviour
                 GenerateGrid();
                 break;
             case GameState.SpawningBlocks:
-                SpawnBlocks(_round++ == 0 ? 2: 1);
+                SpawnBlocks(_round++ == 0 ? 2 : 1);
                 break;
             case GameState.WaitingInput:
                 break;
@@ -60,6 +64,7 @@ public class GameManager : MonoBehaviour
                 break;
             case GameState.Lose:
                 _loseScreen.SetActive(true);
+                sp.Close();
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
@@ -67,18 +72,40 @@ public class GameManager : MonoBehaviour
 
     }
 
-  
+
 
     void Update()
     {
         if (_state != GameState.WaitingInput) return;
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow)) Shift(Vector2.left);
-        if (Input.GetKeyDown(KeyCode.RightArrow)) Shift(Vector2.right);
-        if (Input.GetKeyDown(KeyCode.UpArrow)) Shift(Vector2.up);
-        if (Input.GetKeyDown(KeyCode.DownArrow)) Shift(Vector2.down);
-    }
+        if (sp.IsOpen)
+        {
+            try
+            {
+                ReadCom();
+                if (Input.GetKeyDown(KeyCode.LeftArrow) || CMD == 4) Shift(Vector2.left);
+                if (Input.GetKeyDown(KeyCode.RightArrow) || CMD == 6) Shift(Vector2.right);
+                if (Input.GetKeyDown(KeyCode.UpArrow) || CMD == 8) Shift(Vector2.up);
+                if (Input.GetKeyDown(KeyCode.DownArrow) || CMD == 2) Shift(Vector2.down);
 
+            }
+            catch (System.Exception)
+            {
+
+            }
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.LeftArrow) || CMD == 4) Shift(Vector2.left);
+            if (Input.GetKeyDown(KeyCode.RightArrow) || CMD == 6) Shift(Vector2.right);
+            if (Input.GetKeyDown(KeyCode.UpArrow) || CMD == 8) Shift(Vector2.up);
+            if (Input.GetKeyDown(KeyCode.DownArrow) || CMD == 2) Shift(Vector2.down);
+        }
+    }
+    void ReadCom()
+    {
+        CMD = sp.ReadByte();
+    }
     void GenerateGrid()
     {
         _round = 0;
@@ -109,7 +136,7 @@ public class GameManager : MonoBehaviour
 
         foreach (var node in freeNodes.Take(amount))
         {
-            SpawnBlock(node, Random.value > 0.8f ? 4: 2);
+            SpawnBlock(node, Random.value > 0.8f ? 4 : 2);
         }
 
 
@@ -119,7 +146,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        ChangeState(_blocks.Any(b=>b.Value == _winCondition) ? GameState.Win :GameState.WaitingInput);
+        ChangeState(_blocks.Any(b => b.Value == _winCondition) ? GameState.Win : GameState.WaitingInput);
     }
 
     void SpawnBlock(Node node, int value)
@@ -146,7 +173,7 @@ public class GameManager : MonoBehaviour
                 block.SetBlock(next);
 
                 var possibleNode = GetNodeAtPosition(next.Pos + dir);
-                if(possibleNode != null)
+                if (possibleNode != null)
                 {
                     //We know a node is present
 
@@ -164,14 +191,14 @@ public class GameManager : MonoBehaviour
             }
             while (next != block.Node);
 
-            
-            
+
+
         }
 
 
         var sequence = DOTween.Sequence();
 
-        foreach( var block in orderedBlocks)
+        foreach (var block in orderedBlocks)
         {
             var movePoint = block.MergingBlock != null ? block.MergingBlock.Node.Pos : block.Node.Pos;
 
@@ -183,7 +210,7 @@ public class GameManager : MonoBehaviour
             var mergeBlocks = orderedBlocks.Where(b => b.MergingBlock != null).ToList();
             foreach (var block in orderedBlocks.Where(b => b.MergingBlock != null))
             {
-                MergeBlocks(block.MergingBlock,block);
+                MergeBlocks(block.MergingBlock, block);
             }
             if (mergeBlocks.Any()) _source.PlayOneShot(_matchClips[Random.Range(0, _matchClips.Length)], 0.2f);
             ChangeState(GameState.SpawningBlocks);
@@ -214,21 +241,22 @@ public class GameManager : MonoBehaviour
         Destroy(block.gameObject);
     }
 
-Node GetNodeAtPosition(Vector2 pos) { 
+    Node GetNodeAtPosition(Vector2 pos)
+    {
 
-    return _nodes.FirstOrDefault(n => n.Pos == pos);
-}
+        return _nodes.FirstOrDefault(n => n.Pos == pos);
+    }
 
 
 }
 
 [Serializable]
 
-    public struct BlockType
-    {
-        public int Value;
-        public Color Color;
-    }
+public struct BlockType
+{
+    public int Value;
+    public Color Color;
+}
 
 public enum GameState
 {
@@ -240,3 +268,4 @@ public enum GameState
     Lose
 }
 
+ 
